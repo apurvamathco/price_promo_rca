@@ -1,0 +1,64 @@
+{
+  "data": [
+    {
+      "article_number": "1335363",
+      "product_name": "Best Buy Peppers 1.14 kg",
+      "store": "9665",
+      "store_name": "FreshCo",
+      "uom": "EA",
+      "banner": "FreshCo",
+      "region": "Western",
+      "issue_type": "Price Mismatch",
+      "severity": "CRITICAL",
+      "last_detected": "2024-07-10 15:47 UTC"
+    },
+    {
+      "article_number": "1335364",
+      "product_name": "Organic Spinach 284g",
+      "store": "9666",
+      "store_name": "FreshCo",
+      "uom": "EA",
+      "banner": "FreshCo",
+      "region": "Central",
+      "issue_type": "Promotion Missing",
+      "severity": "HIGH",
+      "last_detected": "2024-07-10 15:32 UTC"
+    },
+    {
+      "article_number": "1335365",
+      "product_name": "2% Milk 2L",
+      "store": "9667",
+      "store_name": "SaveCo",
+      "uom": "EA",
+      "banner": "SaveCo",
+      "region": "Eastern",
+      "issue_type": "Cache Stale",
+      "severity": "MEDIUM",
+      "last_detected": "2024-07-10 15:12 UTC"
+    },
+    {
+      "article_number": "1335366",
+      "product_name": "Bananas 1.36 kg",
+      "store": "9668",
+      "store_name": "Foodland",
+      "uom": "EA",
+      "banner": "Foodland",
+      "region": "Northern",
+      "issue_type": "Price Mismatch",
+      "severity": "HIGH",
+      "last_detected": "2024-07-10 15:05 UTC"
+    },
+    {
+      "article_number": "1335367",
+      "product_name": "Chicken Breast 1kg",
+      "store": "9669",
+      "store_name": "IGA",
+      "uom": "EA",
+      "banner": "IGA",
+      "region": "Western",
+      "issue_type": "UOM Mismatch",
+      "severity": "MEDIUM",
+      "last_detected": "2024-07-10 14:58 UTC"
+    }
+  ]
+}
