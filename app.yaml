@@ -2,6 +2,6 @@
 command:
   - streamlit
   - run
-  - app.py
+  - src/app.py
   - --server.port=${DATABRICKS_APP_PORT}
   - --server.address=0.0.0.0
