@@ -207,7 +207,7 @@ propagation_data = load_propagation_data()
 
 col1, col2 = st.columns([0.7, 0.3])
 with col1:
-    st.title("💰 Price & Promotion RCA Tool")
+    st.title("Price & Promotion RCA Tool")
     st.markdown("Real-time monitoring of SAP → DIH → SAIL → Algolia → Website")
 
 with col2:
