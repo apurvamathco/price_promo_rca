@@ -15,6 +15,7 @@ from datetime import datetime
 
 st.set_page_config(
     page_title="Price & Promotion RCA Tool",
+    page_icon="💰",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -56,6 +57,15 @@ st.markdown("""
         font-weight: 600;
         display: inline-block;
     }
+    .badge-none {
+        background-color: #E8F5E9;
+        color: #12B886;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+    }
     .flow-box {
         border: 2px solid;
         border-radius: 8px;
@@ -82,13 +92,12 @@ st.markdown("""
 @st.cache_data
 def load_affected_articles():
     """Load mock affected articles data."""
-    # Hardcoded data (same as JSON file)
     data = [
         {
             "article_number": "1335363",
             "product_name": "Best Buy Peppers 1.14 kg",
-            "store": "9665",
-            "store_name": "FreshCo",
+            "store": "9866",
+            "store_name": "FreshCo Parliament & Dundas",
             "uom": "EA",
             "banner": "FreshCo",
             "region": "Western",
@@ -99,49 +108,49 @@ def load_affected_articles():
         {
             "article_number": "1335364",
             "product_name": "Organic Spinach 284g",
-            "store": "9666",
-            "store_name": "FreshCo",
+            "store": "9866",
+            "store_name": "FreshCo Leslie & Lakeshore",
             "uom": "EA",
             "banner": "FreshCo",
             "region": "Central",
-            "issue_type": "Promotion Missing",
-            "severity": "HIGH",
+            "issue_type": "None - All Systems Match",
+            "severity": "NONE",
             "last_detected": "2024-07-10 15:32 UTC"
         },
         {
             "article_number": "1335365",
             "product_name": "2% Milk 2L",
-            "store": "9667",
-            "store_name": "SaveCo",
+            "store": "9867",
+            "store_name": "Safeway Queen & Gladstone",
             "uom": "EA",
-            "banner": "SaveCo",
+            "banner": "Safeway",
             "region": "Eastern",
             "issue_type": "Cache Stale",
-            "severity": "MEDIUM",
+            "severity": "HIGH",
             "last_detected": "2024-07-10 15:12 UTC"
         },
         {
             "article_number": "1335366",
-            "product_name": "Bananas 1.36 kg",
-            "store": "9668",
-            "store_name": "Foodland",
+            "product_name": "Bananas 1.38 kg",
+            "store": "9868",
+            "store_name": "FreshCo Dufferin & Dupont",
             "uom": "EA",
-            "banner": "Foodland",
+            "banner": "FreshCo",
             "region": "Northern",
             "issue_type": "Price Mismatch",
-            "severity": "HIGH",
+            "severity": "CRITICAL",
             "last_detected": "2024-07-10 15:05 UTC"
         },
         {
             "article_number": "1335367",
             "product_name": "Chicken Breast 1kg",
-            "store": "9669",
-            "store_name": "IGA",
+            "store": "9869",
+            "store_name": "FreshCo Bloor & Dundas",
             "uom": "EA",
-            "banner": "IGA",
+            "banner": "FreshCo",
             "region": "Western",
-            "issue_type": "UOM Mismatch",
-            "severity": "MEDIUM",
+            "issue_type": "Promotion Missing",
+            "severity": "HIGH",
             "last_detected": "2024-07-10 14:58 UTC"
         }
     ]
@@ -150,8 +159,44 @@ def load_affected_articles():
 @st.cache_data
 def load_propagation_data():
     """Load mock propagation data for all articles."""
-    from propogation_data import propagation_scenarios
-    return propagation_scenarios
+    data = {
+        "1335363": {
+            "sap": {"system": "SAP", "price": 6.00, "promotion_price": None, "status": "Match", "time": "06:00 UTC", "correlation_id": "SAP-001-2024-07-10", "notes": "Source of truth - correct price"},
+            "dih": {"system": "DIH", "price": 6.00, "promotion_price": None, "status": "Match", "time": "06:15 UTC", "correlation_id": "DIH-001-2024-07-10", "notes": "Correctly synced from SAP"},
+            "sail": {"system": "SAIL", "price": 6.68, "promotion_price": None, "status": "Mismatch", "time": "06:30 UTC", "correlation_id": "SAIL-001-2024-07-10", "notes": "DIVERGENCE POINT - Stale/incorrect pricing"},
+            "algolia": {"system": "Algolia", "price": 6.68, "promotion_price": None, "status": "Mismatch", "time": "06:45 UTC", "correlation_id": "ALG-001-2024-07-10", "notes": "Propagated bad price from SAIL"},
+            "website": {"system": "Website", "price": 6.68, "promotion_price": None, "status": "Mismatch", "time": "Live (Cached)", "correlation_id": "WEB-001-2024-07-10", "notes": "Displays incorrect price (+$0.68 loss)"}
+        },
+        "1335364": {
+            "sap": {"system": "SAP", "price": 3.59, "promotion_price": None, "status": "Match", "time": "07:00 UTC", "correlation_id": "SAP-002-2024-07-10", "notes": "Correct price"},
+            "dih": {"system": "DIH", "price": 3.59, "promotion_price": None, "status": "Match", "time": "07:15 UTC", "correlation_id": "DIH-002-2024-07-10", "notes": "Synced correctly"},
+            "sail": {"system": "SAIL", "price": 3.59, "promotion_price": None, "status": "Match", "time": "07:30 UTC", "correlation_id": "SAIL-002-2024-07-10", "notes": "All systems aligned"},
+            "algolia": {"system": "Algolia", "price": 3.59, "promotion_price": None, "status": "Match", "time": "07:45 UTC", "correlation_id": "ALG-002-2024-07-10", "notes": "Correct price in index"},
+            "website": {"system": "Website", "price": 3.59, "promotion_price": None, "status": "Match", "time": "Live", "correlation_id": "WEB-002-2024-07-10", "notes": "Displaying correct price"}
+        },
+        "1335365": {
+            "sap": {"system": "SAP", "price": 2.99, "promotion_price": None, "status": "Match", "time": "05:00 UTC", "correlation_id": "SAP-003-2024-07-10", "notes": "Price changed at 05:00 UTC"},
+            "dih": {"system": "DIH", "price": 2.99, "promotion_price": None, "status": "Match", "time": "05:15 UTC", "correlation_id": "DIH-003-2024-07-10", "notes": "Updated from SAP"},
+            "sail": {"system": "SAIL", "price": 2.99, "promotion_price": None, "status": "Match", "time": "05:30 UTC", "correlation_id": "SAIL-003-2024-07-10", "notes": "Correct price"},
+            "algolia": {"system": "Algolia", "price": 3.49, "promotion_price": None, "status": "Mismatch", "time": "04:30 UTC", "correlation_id": "ALG-003-2024-07-10", "notes": "DIVERGENCE POINT - Stale cache, last indexed 30min ago"},
+            "website": {"system": "Website", "price": 3.49, "promotion_price": None, "status": "Mismatch", "time": "Live (Cached)", "correlation_id": "WEB-003-2024-07-10", "notes": "Displays old price (+$0.50 loss)"}
+        },
+        "1335366": {
+            "sap": {"system": "SAP", "price": 5.49, "promotion_price": None, "status": "Match", "time": "06:00 UTC", "correlation_id": "SAP-004-2024-07-10", "notes": "Source of truth - correct price"},
+            "dih": {"system": "DIH", "price": 4.99, "promotion_price": None, "status": "Mismatch", "time": "06:15 UTC", "correlation_id": "DIH-004-2024-07-10", "notes": "DIVERGENCE POINT - DIH data quality issue, not synced with SAP"},
+            "sail": {"system": "SAIL", "price": 4.99, "promotion_price": None, "status": "Mismatch", "time": "06:30 UTC", "correlation_id": "SAIL-004-2024-07-10", "notes": "Propagated bad data from DIH"},
+            "algolia": {"system": "Algolia", "price": 4.99, "promotion_price": None, "status": "Mismatch", "time": "06:45 UTC", "correlation_id": "ALG-004-2024-07-10", "notes": "Propagated bad data"},
+            "website": {"system": "Website", "price": 4.99, "promotion_price": None, "status": "Mismatch", "time": "Live (Cached)", "correlation_id": "WEB-004-2024-07-10", "notes": "Displays wrong price (-$0.50 loss)"}
+        },
+        "1335367": {
+            "sap": {"system": "SAP", "price": 8.99, "promotion_price": 7.49, "status": "Match", "time": "07:00 UTC", "correlation_id": "SAP-005-2024-07-10", "notes": "Active promotion: $8.99 → $7.49"},
+            "dih": {"system": "DIH", "price": 8.99, "promotion_price": None, "status": "Mismatch", "time": "07:15 UTC", "correlation_id": "DIH-005-2024-07-10", "notes": "DIVERGENCE POINT - Promotion not propagated from SAP"},
+            "sail": {"system": "SAIL", "price": 8.99, "promotion_price": None, "status": "Mismatch", "time": "07:30 UTC", "correlation_id": "SAIL-005-2024-07-10", "notes": "No promotion data"},
+            "algolia": {"system": "Algolia", "price": 8.99, "promotion_price": None, "status": "Mismatch", "time": "07:45 UTC", "correlation_id": "ALG-005-2024-07-10", "notes": "No promotion in index"},
+            "website": {"system": "Website", "price": 8.99, "promotion_price": None, "status": "Mismatch", "time": "Live (Cached)", "correlation_id": "WEB-005-2024-07-10", "notes": "Missing promotion - customer pays $1.50 more"}
+        }
+    }
+    return data
 
 # Load data
 df_articles = load_affected_articles()
@@ -285,28 +330,11 @@ if selected_article:
                     <div style='font-size: 20px; color: {status_color}; font-weight: 700;'>{status_icon}</div>
                     <div style='font-size: 14px; font-weight: 600; margin: 8px 0;'>${system_info.get("price", "—")}</div>
                     <div style='font-size: 11px; color: #666;'>{system_info.get("time", "—")}</div>
+                    <div style='font-size: 9px; color: #999; margin-top: 6px; font-weight: normal;'>{system_info.get("notes", "")}</div>
                 </div>
                 """, unsafe_allow_html=True)
     
-for col, system, label in zip(columns, systems, system_labels):
-    with col:
-        system_info = article_data.get(system, {})
-        status = system_info.get("status", "Unknown")
-        status_icon = "✓" if status == "Match" else "✗"
-        status_color = "#12B886" if status == "Match" else "#D32F2F"
-        
-        st.markdown(f"""
-        <div style='text-align: center; padding: 12px; border: 2px solid {status_color}; 
-                    border-radius: 8px; background-color: {"#E8F5E9" if status == "Match" else "#FFE0E0"};'>
-            <div style='font-weight: 600; margin-bottom: 8px;'>{label}</div>
-            <div style='font-size: 20px; color: {status_color}; font-weight: 700;'>{status_icon}</div>
-            <div style='font-size: 14px; font-weight: 600; margin: 8px 0;'>${system_info.get("price", "—")}</div>
-            <div style='font-size: 11px; color: #666;'>{system_info.get("time", "—")}</div>
-            <div style='font-size: 10px; color: #999; margin-top: 6px;'>{system_info.get("notes", "")}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-# System Comparison Table
+    # System Comparison Table
     st.markdown("### System Comparison")
     
     if article_data:
@@ -351,3 +379,19 @@ for col, system, label in zip(columns, systems, system_labels):
         }
         
         st.dataframe(pd.DataFrame(comparison_data), use_container_width=True, hide_index=True)
+    
+    # Confidence Score
+    st.markdown("### Confidence Score")
+    st.progress(0.97)
+    st.markdown("97% - High confidence in root cause analysis")
+
+# ════════════════════════════════════════════════════════════════
+# FOOTER
+# ════════════════════════════════════════════════════════════════
+
+st.divider()
+st.markdown("""
+<div style='text-align: center; color: #999; font-size: 12px;'>
+Last Updated: 2024-07-10 15:47:23 UTC | Data Freshness: 100%
+</div>
+""", unsafe_allow_html=True)
