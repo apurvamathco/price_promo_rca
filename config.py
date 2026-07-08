@@ -1,19 +1,14 @@
-import os
-from pathlib import Path
+# ══════════════════════════════════════════════════════════════
+# APPLICATION CONFIG
+# Central place for constants. Kept small on purpose.
+# ══════════════════════════════════════════════════════════════
 
-# Paths
-WORKSPACE_ROOT = "/Workspace/Users"
-PROJECT_NAME = "price-promo-rca"
-MOCK_DATA_DIR = "/Workspace/Users/{user_email}/price-promo-rca/mock_data"
+APP_NAME    = "Price & Promotion RCA Tool"
+APP_VERSION = "2.0.0"
 
-# Application Settings
-APP_NAME = "Price & Promotion RCA Tool"
-APP_VERSION = "1.0.0"
-
-# Data
+# Data files (used when wiring real data via data.py)
 AFFECTED_ARTICLES_FILE = "affected_articles.json"
-PROPAGATION_DATA_FILE = "propagation_data.json"
 
-# Display Settings
+# Display
 ITEMS_PER_PAGE = 10
-THEME = "light"
+THEME          = "light"
