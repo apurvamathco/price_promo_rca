@@ -149,24 +149,9 @@ def load_affected_articles():
 
 @st.cache_data
 def load_propagation_data():
-    """Load mock propagation data."""
-    data = {
-        "1335363": {
-            "sap": {"price": 6.99, "status": "Match", "time": "08:00 UTC"},
-            "dih": {"price": 6.99, "status": "Match", "time": "08:15 UTC"},
-            "sail": {"price": 5.99, "status": "Mismatch", "time": "09:00 UTC"},
-            "algolia": {"price": 5.99, "status": "Mismatch", "time": "09:15 UTC"},
-            "website": {"price": 5.99, "status": "Mismatch", "time": "Live"}
-        },
-        "1335364": {
-            "sap": {"price": 4.49, "status": "Match", "time": "08:00 UTC"},
-            "dih": {"price": 4.49, "status": "Match", "time": "08:15 UTC"},
-            "sail": {"price": 4.49, "status": "Match", "time": "09:00 UTC"},
-            "algolia": {"price": 4.49, "status": "Match", "time": "09:15 UTC"},
-            "website": {"price": 4.49, "status": "Match", "time": "Live"}
-        }
-    }
-    return data
+    """Load mock propagation data for all articles."""
+    from propogation_data import propagation_scenarios
+    return propagation_scenarios
 
 # Load data
 df_articles = load_affected_articles()
@@ -303,29 +288,66 @@ if selected_article:
                 </div>
                 """, unsafe_allow_html=True)
     
-    # System Comparison Table
+for col, system, label in zip(columns, systems, system_labels):
+    with col:
+        system_info = article_data.get(system, {})
+        status = system_info.get("status", "Unknown")
+        status_icon = "✓" if status == "Match" else "✗"
+        status_color = "#12B886" if status == "Match" else "#D32F2F"
+        
+        st.markdown(f"""
+        <div style='text-align: center; padding: 12px; border: 2px solid {status_color}; 
+                    border-radius: 8px; background-color: {"#E8F5E9" if status == "Match" else "#FFE0E0"};'>
+            <div style='font-weight: 600; margin-bottom: 8px;'>{label}</div>
+            <div style='font-size: 20px; color: {status_color}; font-weight: 700;'>{status_icon}</div>
+            <div style='font-size: 14px; font-weight: 600; margin: 8px 0;'>${system_info.get("price", "—")}</div>
+            <div style='font-size: 11px; color: #666;'>{system_info.get("time", "—")}</div>
+            <div style='font-size: 10px; color: #999; margin-top: 6px;'>{system_info.get("notes", "")}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+# System Comparison Table
     st.markdown("### System Comparison")
     
-    comparison_data = {
-        "System": ["SAP", "DIH", "SAIL", "Algolia", "Website"],
-        "Regular Price": ["$6.99", "$6.99", "$5.99", "$5.99", "$5.99"] if selected_article == "1335363" else ["$4.49", "$4.49", "$4.49", "$4.49", "$4.49"],
-        "Status": ["✓ Match", "✓ Match", "✗ Mismatch", "✗ Mismatch", "✗ Mismatch"] if selected_article == "1335363" else ["✓ Match", "✓ Match", "✓ Match", "✓ Match", "✓ Match"]
-    }
-    
-    st.dataframe(pd.DataFrame(comparison_data), use_container_width=True, hide_index=True)
-    
-    # Confidence Score
-    st.markdown("### Confidence Score")
-    st.progress(0.97)
-    st.markdown("97% - High confidence in root cause analysis")
-
-# ════════════════════════════════════════════════════════════════
-# FOOTER
-# ════════════════════════════════════════════════════════════════
-
-st.divider()
-st.markdown("""
-<div style='text-align: center; color: #999; font-size: 12px;'>
-Last Updated: 2024-07-10 15:47:23 UTC | Data Freshness: 100%
-</div>
-""", unsafe_allow_html=True)
+    if article_data:
+        # Dynamically build comparison data from propagation_data
+        comparison_data = {
+            "System": ["SAP", "DIH", "SAIL", "Algolia", "Website"],
+            "Regular Price": [
+                f"${article_data['sap']['price']}",
+                f"${article_data['dih']['price']}",
+                f"${article_data['sail']['price']}",
+                f"${article_data['algolia']['price']}",
+                f"${article_data['website']['price']}"
+            ],
+            "Promotion Price": [
+                f"${article_data['sap']['promotion_price']}" if article_data['sap'].get('promotion_price') else "—",
+                f"${article_data['dih']['promotion_price']}" if article_data['dih'].get('promotion_price') else "—",
+                f"${article_data['sail']['promotion_price']}" if article_data['sail'].get('promotion_price') else "—",
+                f"${article_data['algolia']['promotion_price']}" if article_data['algolia'].get('promotion_price') else "—",
+                f"${article_data['website']['promotion_price']}" if article_data['website'].get('promotion_price') else "—"
+            ],
+            "Last Updated": [
+                article_data['sap']['time'],
+                article_data['dih']['time'],
+                article_data['sail']['time'],
+                article_data['algolia']['time'],
+                article_data['website']['time']
+            ],
+            "Correlation ID": [
+                article_data['sap']['correlation_id'],
+                article_data['dih']['correlation_id'],
+                article_data['sail']['correlation_id'],
+                article_data['algolia']['correlation_id'],
+                article_data['website']['correlation_id']
+            ],
+            "Status": [
+                "✓ Match" if article_data['sap']['status'] == "Match" else "✗ Mismatch",
+                "✓ Match" if article_data['dih']['status'] == "Match" else "✗ Mismatch",
+                "✓ Match" if article_data['sail']['status'] == "Match" else "✗ Mismatch",
+                "✓ Match" if article_data['algolia']['status'] == "Match" else "✗ Mismatch",
+                "✓ Match" if article_data['website']['status'] == "Match" else "✗ Mismatch"
+            ]
+        }
+        
+        st.dataframe(pd.DataFrame(comparison_data), use_container_width=True, hide_index=True)
