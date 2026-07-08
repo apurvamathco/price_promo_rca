@@ -1,5 +1,5 @@
 # ══════════════════════════════════════════════════════════════
-# PRICE & PROMOTION RCA TOOL — Streamlit frontend (Databricks Apps)
+# PRICE & PROMOTIONS RCA TOOL — Streamlit frontend (Databricks Apps)
 # ------------------------------------------------------------------
 # Rendering strategy:
 #   Native Streamlit widgets (st.metric / st.dataframe / st.columns)
