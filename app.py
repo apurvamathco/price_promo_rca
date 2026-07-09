@@ -11,7 +11,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 st.set_page_config(
-    page_title="PriceGuard — Sobeys Pricing Discrepancy Tracker",
+    page_title="Sobeys Pricing Discrepancy Tracker",
     page_icon="🟢",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -28,7 +28,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-UI = r'''<!-- PriceGuard — Sobeys Pricing Discrepancy Tracker (self-contained POC) -->
+UI = r'''<!-- Sobeys Pricing Discrepancy Tracker (self-contained POC) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
 
@@ -104,6 +104,27 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .seg__b svg{width:14px;height:14px}
 .seg__b:hover{color:var(--ink)}
 .seg__b.is-on{background:var(--brand);color:#fff;box-shadow:0 2px 8px var(--brand-ring)}
+
+/* ---- date range popover ---- */
+.seg__custom{position:relative;display:flex}
+.daterange{position:absolute;top:calc(100% + 8px);right:0;z-index:50;width:300px;
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  box-shadow:var(--shadow-lg);padding:16px;display:none}
+.daterange.show{display:block;animation:rise .2s cubic-bezier(.22,1,.36,1)}
+.daterange__row{display:flex;gap:10px}
+.daterange__f{flex:1}
+.daterange__f label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.daterange__f input{width:100%;height:40px;padding:0 10px;border:1px solid var(--line);border-radius:9px;
+  font-family:inherit;font-size:13px;color:var(--ink);background:var(--card);outline:none}
+.daterange__f input:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-ring)}
+.daterange__err{display:none;color:var(--red);font-size:11.5px;font-weight:500;margin-top:10px}
+.daterange__err.show{display:block}
+.daterange__act{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.daterange__act button{height:36px;padding:0 14px;border-radius:9px;font-size:12.5px;font-weight:600}
+.dr-cancel{border:1px solid var(--line);background:var(--card);color:var(--ink-2)}
+.dr-cancel:hover{background:var(--bg)}
+.dr-apply{background:var(--brand);color:#fff}
+.dr-apply:hover{background:var(--brand-deep)}
 
 /* ---------- KPI (icon + value + label only) ---------- */
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
@@ -247,7 +268,14 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .pconn::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,var(--brand) 0 6px,transparent 6px 12px);
   background-size:200% 100%;animation:flow 1.1s linear infinite;opacity:.9}
 .pconn.bad::before{background-image:repeating-linear-gradient(90deg,var(--red) 0 6px,transparent 6px 12px)}
-@keyframes flow{to{background-position:-24px 0}}
+@keyframes flow { from{
+        background-position:0 0;
+    }
+
+    to{
+        background-position:24px 0;
+    }
+}
 .pnode:last-child .pconn{display:none}
 .pnode.show .pnode__dot{opacity:1;transform:scale(1)}
 
@@ -284,23 +312,12 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
     <div class="brand">
       <img class="brand__logo" src="data:image/png;base64,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" alt="Sobeys"/>
       <span class="brand__sep"></span>
-      <div>
-        <div class="brand__word">PriceGuard</div>
-        <div class="brand__sub">Pricing Discrepancy Tracker</div>
-      </div>
     </div>
-    <div class="nav__div"></div>
     <div class="tabs">
       <button class="tab is-on" data-tab="dash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Dashboard</button>
       <button class="tab" data-tab="inv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Investigations</button>
     </div>
     <div class="nav__grow"></div>
-    <div class="nav__search">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input placeholder="Search articles, stores, promotions…"/>
-    </div>
-    <button class="nav__ic"><span class="nav__dot"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button>
-    <button class="nav__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></button>
     <button class="nav__me"><span class="nav__av">GK</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
   </nav>
 
@@ -308,8 +325,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
   <section id="v-dash" class="view">
     <div class="phead">
       <div>
-        <div class="phead__eyebrow"><span class="live"></span>Live monitoring</div>
-        <h1>Pricing Ecosystem Overview</h1>
+        <h1>Pricing Discrepancy Tracker</h1>
         <p class="phead__sub">Tracking price consistency across
           <span class="chain"><b>SAP</b><i></i><b>DIH</b><i></i><b>SAIL</b><i></i><b>Algolia</b><i></i><b>Website</b></span></p>
       </div>
@@ -317,7 +333,20 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
         <button class="seg__b is-on">Today</button>
         <button class="seg__b">Last 7 days</button>
         <button class="seg__b">Last 30 days</button>
-        <button class="seg__b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Custom</button>
+        <div class="seg__custom">
+        <button class="seg__b" id="customBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Custom</button>
+        <div class="daterange" id="daterange">
+        <div class="daterange__row">
+        <div class="daterange__f"><label for="dr-from">From</label><input type="date" id="dr-from"></div>
+        <div class="daterange__f"><label for="dr-to">To</label><input type="date" id="dr-to"></div>
+        </div>
+        <div class="daterange__err" id="dr-err"></div>
+        <div class="daterange__act">
+        <button class="dr-cancel" id="dr-cancel">Cancel</button>
+        <button class="dr-apply" id="dr-apply">Apply</button>
+        </div>
+        </div>
+        </div>
       </div>
     </div>
 
@@ -331,7 +360,6 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input id="search" placeholder="Search by article, product, store or banner…"/>
           </div>
-          <button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>Filters</button>
         </div>
       </div>
       <div class="twrap">
@@ -376,10 +404,10 @@ const money=v=>'$'+v.toFixed(2);
 
 // ---------------- DATA ----------------
 const KPIS=[
-  {ic:'cube',tone:'indigo',val:'342',lbl:'Articles affected'},
+  {ic:'cube',tone:'indigo',val:'20',lbl:'Articles affected'},
   {ic:'store',tone:'green',val:'87',lbl:'Stores affected'},
-  {ic:'tag',tone:'purple',val:'24',lbl:'Banners affected'},
-  {ic:'globe',tone:'orange',val:'8',lbl:'Regions affected'},
+  {ic:'tag',tone:'purple',val:'3',lbl:'Banners affected'},
+  {ic:'globe',tone:'orange',val:'2',lbl:'Regions affected'},
 ];
 
 // pipeline nodes: SAP -> DIH -> SAIL -> Algolia -> Website
@@ -400,8 +428,8 @@ const TEMPLATES={
     pipe:P(N(8.99,1,'07:00',7.49),N(8.99,0,'07:15'),N(8.99,0,'07:30'),N(8.99,0,'07:45'),N(8.99,0,'Live (cached)'))},
 };
 
-const BANNERS=['Sobeys','FreshCo','Safeway','Foodland','IGA','Farm Boy','Longo\u2019s','Thrifty Foods'];
-const REGIONS={Sobeys:'Atlantic',FreshCo:'Ontario',Safeway:'Western',Foodland:'Ontario',IGA:'Quebec','Farm Boy':'Ontario','Longo\u2019s':'Ontario','Thrifty Foods':'Western'};
+const BANNERS=['Sobeys','FreshCo','Safeway','Foodland','IGA','Marche Traditions','Thrifty Foods'];
+const REGIONS={Sobeys:'Atlantic',FreshCo:'Ontario',Safeway:'West',Foodland:'Ontario',IGA:'Quebec','Marche Traditions':'West','Thrifty Foods':'West'};
 const PRODS=['Best Buy Peppers 1.14 kg','Organic Spinach 284 g','Compliments 2% Milk 2 L','Bananas 1.38 kg','Chicken Breast 1 kg','Compliments Aged Cheddar 400 g','Sensations Sourdough 500 g','Roma Tomatoes 1 kg','Lean Ground Beef 1 lb','Free-Run Eggs 12 ct','Avocados 5 ct Bag','Atlantic Salmon 340 g','Greek Yogurt 750 g','Cavendish Fries 1 kg','Gala Apples 3 lb','Natural Peanut Butter 1 kg','Basmati Rice 2 kg','Not-From-Concentrate OJ 1.75 L','Cheerios 570 g','Baby Spinach 142 g'];
 const STORES=[['9866','Parliament & Dundas'],['9871','Leslie & Lakeshore'],['9867','Queen & Cladetona'],['9868','Dufferin & Dupont'],['9852','Bloor & Dundas'],['9903','King & Spadina'],['9915','Yonge & Eglinton'],['9922','Bathurst & College']];
 const TKEYS=['price_sail','promo_missing','price_algolia','price_dih','price_sail','price_algolia','promo_missing','price_dih','price_sail','promo_missing','price_algolia','price_dih','price_sail','promo_missing','price_algolia','price_dih','price_sail','promo_missing','price_algolia','price_dih'];
@@ -502,23 +530,23 @@ function showInvInput(){
     <div class="invzero">
       ${ART}
       <h2>Trace a price discrepancy</h2>
-      <p>Enter an article number to follow its price through every system — from SAP all the way to the storefront.</p>
+      <p>Enter the product information to follow its price through every system — from SAP all the way to the storefront.</p>
       <div class="invform">
         <div class="invfield">
-          <label for="inv-art">Article number</label>
-          <input id="inv-art" inputmode="numeric" placeholder="e.g. 1335363" autocomplete="off"/>
+          <label for="inv-art">Article number / Product Name</label>
+          <input id="inv-art" inputmode="numeric" placeholder="Enter Article Number or Product Name" autocomplete="off"/>
         </div>
         <div class="invfield combo">
-          <label for="inv-store">Store <span style="color:var(--faint);font-weight:500">(optional)</span></label>
+          <label for="inv-store">Store <span style="color:var(--faint);font-weight:500"></span></label>
           <div class="combo__box">
-            <input id="inv-store" placeholder="Start typing a store…" autocomplete="off"/>
+            <input id="inv-store" placeholder="Enter a StoreNumber or Store Name" autocomplete="off"/>
             <ul class="combo__list" id="inv-store-list"></ul>
           </div>
         </div>
         <div class="invfield combo">
-          <label for="inv-uom">Unit of measure <span style="color:var(--faint);font-weight:500">(optional)</span></label>
+          <label for="inv-uom">Unit of measure <span style="color:var(--faint);font-weight:500"></span></label>
           <div class="combo__box">
-            <input id="inv-uom" placeholder="Start typing a UOM…" autocomplete="off"/>
+            <input id="inv-uom" placeholder="Enter a UoM" autocomplete="off"/>
             <ul class="combo__list" id="inv-uom-list"></ul>
           </div>
         </div>
@@ -598,7 +626,6 @@ function openInvestigation(id){
           <div class="legend">
             <span class="legend__i"><span class="legend__d" style="background:var(--ok)"></span>Match</span>
             <span class="legend__i"><span class="legend__d" style="background:var(--red)"></span>Mismatch</span>
-            <span class="legend__i"><span class="legend__d" style="background:var(--brand)"></span>Data flow</span>
           </div>
         </div>
         <div class="pipe" id="pipe">${pipeHTML}</div>
@@ -628,9 +655,52 @@ function setTab(name){document.querySelectorAll('.tab').forEach(t=>t.classList.t
 // ---------------- WIRING ----------------
 renderKPIs();renderTable();
 document.getElementById('search').addEventListener('input',e=>{state.query=e.target.value;state.page=1;renderTable();});
-document.querySelectorAll('#seg .seg__b').forEach(b=>b.onclick=()=>{
-  document.querySelectorAll('#seg .seg__b').forEach(x=>x.classList.remove('is-on'));
-  if(!b.querySelector('svg'))b.classList.add('is-on');});
+I.cal='<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>';
+ 
+(function(){
+  const seg=document.getElementById('seg');
+  const customBtn=document.getElementById('customBtn');
+  const dr=document.getElementById('daterange');
+  const drFrom=document.getElementById('dr-from'), drTo=document.getElementById('dr-to');
+  const drErr=document.getElementById('dr-err');
+  const customDefault=svg('cal')+'Custom';
+  const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const fmt=d=>{const [y,m,dd]=d.split('-').map(Number);return `${MON[m-1]} ${dd}`;};
+  const today=new Date().toISOString().slice(0,10);
+  drFrom.max=today; drTo.max=today;
+ 
+  // preset buttons (Today / Last 7 days / Last 30 days)
+  seg.querySelectorAll('.seg__b').forEach(b=>{
+    if(b.id==='customBtn')return;
+    b.onclick=()=>{
+      seg.querySelectorAll('.seg__b').forEach(x=>x.classList.remove('is-on'));
+      b.classList.add('is-on');
+      customBtn.innerHTML=customDefault;
+      dr.classList.remove('show'); drErr.classList.remove('show');
+      // TODO: refresh data for this preset range
+    };
+  });
+ 
+  const showErr=m=>{drErr.textContent=m;drErr.classList.add('show');};
+ 
+  customBtn.onclick=e=>{e.stopPropagation();dr.classList.toggle('show');};
+  dr.onclick=e=>e.stopPropagation();               // keep popover open on inner clicks
+  document.addEventListener('click',()=>dr.classList.remove('show'));  // click-away closes
+ 
+  document.getElementById('dr-cancel').onclick=()=>{dr.classList.remove('show');drErr.classList.remove('show');};
+ 
+  document.getElementById('dr-apply').onclick=()=>{
+    const f=drFrom.value, t=drTo.value;
+    if(!f||!t){showErr('Please pick both a from and to date.');return;}
+    if(f>t){showErr('The \u201Cfrom\u201D date must be on or before the \u201Cto\u201D date.');return;}
+    drErr.classList.remove('show');
+    seg.querySelectorAll('.seg__b').forEach(x=>x.classList.remove('is-on'));
+    customBtn.classList.add('is-on');
+    customBtn.innerHTML=svg('cal')+`${fmt(f)} \u2013 ${fmt(t)}`;
+    dr.classList.remove('show');
+    // TODO: refresh data for [f, t]; e.g. Streamlit query filtered on detected BETWEEN f AND t
+  };
+})();
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{t.dataset.tab==='inv'?showInvInput():showDash();});
 </script>
 '''
